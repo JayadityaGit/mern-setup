@@ -1,0 +1,150 @@
+To Setup the Server
+
+npm init -y 
+
+npm i -D typescript
+
+npx tsc --init
+
+npm i express
+
+npm i -D @types/express
+
+npx tsc (it is used to convert typescript files to javascript files)
+
+npm i -D nodemon
+
+npm i -D ts-node
+
+npx nodemon "file path" (it is reccomened to use the script to make life easy)
+
+npm i -D eslint
+
+npx eslint --init
+
+npx eslint . --ext .ts (it is reccomened to use the script to make life easy)
+
+
+
+To setup MongoDb and connect it to the server
+
+
+go to the official mongodb website and setup a database
+
+
+since the database credentials are critical data , we need to hide so we use dotenv pkg
+
+npm i dotenv
+
+npm i mongoose
+
+npm i envalid
+
+npm i -D morgan
+
+npm i -D @types/morgan
+
+npm i http-errors
+
+npm i -D @types/http-errors
+
+
+pkgs for authorization 
+
+npm i bcrypt (it is used for hashing the passwords, for security reasons)
+
+npm i -D @types/bcrypt 
+
+
+
+
+
+After creating singnup endpoint 
+
+npm i express-session
+
+npm i @types/express-session
+
+npm i connect-mongo
+
+
+before u send user in the signup endpoint we need to store a session so we can keep them logged in , even after they leave and visit again after sometime
+
+but typescript has some issuses with session, so we need to do some configurtaion
+
+
+create @types folder in the root of the backend folder
+
+then inside it create a file named session.d.ts 
+
+inside this paste this code 
+
+
+import mongoose from "mongoose";
+
+declare module "express-session" {
+    interface SessionData {
+        userId: mongoose.Types.ObjectId;
+    }
+}
+
+
+now we navigate to tsconfig.json and search for typeroots and uncomment it and paste this
+
+
+ "typeRoots": [
+      "node_modules/@types",
+      "@types"
+     ],    
+
+
+also after this go to the ending of the file which two ending parenthis go to the last second one and insert this
+
+  "ts-node": {
+    "files": true
+  }
+
+
+now go to app.ts and after app.use(express.json()) and before the routes one insert this
+
+
+app.use(session({
+    secret: env.Session_Secret,
+    resave: false,
+    saveUninitialized: false,
+
+    cookie: {
+        maxAge: 60 * 60 * 1000,
+    },
+
+    rolling: true,
+    store : MongoStore.create({
+        mongoUrl: env.CONNECT_MONGO
+    })
+}))
+
+for the store u need to import mongostore from connect-mongo
+
+includ this in signup endpoint
+
+req.session.userId = newUser._id;
+
+now create a login endpoint
+
+after create a endpoint where you get only the authenticated user not the signed up ones
+
+after create a logout endpoint 
+
+
+export const logut: RequestHandler = (req, res, next) => {
+    req.session.destroy(error => {
+        if(error){
+            next(error)
+        }else{
+            res.sendStatus(200);
+        }
+    })
+}
+
+
+
